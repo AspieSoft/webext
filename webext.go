@@ -118,6 +118,14 @@ func RedirectSSL(httpPort, sslPort uint16) func(c *fiber.Ctx) error {
 	}
 }
 
+
+//todo: add middleware for verifying user login or return a login form
+// also allow the user to specify the layout of the login form
+// add support for 2auth through email or an authenticator app
+// have admin specify a custom email sending callback
+// add optional "sign in with XXXX" option
+
+
 // ListenAutoTLS will automatically generate a self signed tls certificate
 // if needed and listen to both http and https ports
 //
