@@ -65,9 +65,9 @@ var GetPCID func(c *fiber.Ctx) string = func(c *fiber.Ctx) string {
 //
 // Notice: The 2auth method is still in development, and is not currently available.
 // It is recommended for the first argument, you should simply pass `FormmAuth{Enabled: false}`.
-var FormVerifyLogin func(username string, password string) (auth2 FormAuth, verified bool) = func (username string, password string) (FormAuth, bool) {
+var FormVerifyLogin func(username string, password string) (uuid string, auth2 FormAuth, verified bool) = func (username string, password string) (string, FormAuth, bool) {
 	// verify user in database
-	return FormAuth{Enabled: false}, false
+	return "", FormAuth{Enabled: false}, false
 }
 
 // FormVerifyLoginSession is a method you can override.
@@ -75,9 +75,9 @@ var FormVerifyLogin func(username string, password string) (auth2 FormAuth, veri
 //
 // This method should check your database for a session token verifying if the users
 // login_session cookie is valid and not expired.
-var FormVerifyLoginSession func(token string) (verified bool) = func (token string) bool {
+var FormVerifyLoginSession func(token string) (uuid string, verified bool) = func (token string) (string, bool) {
 	// verify user session in database
-	return false
+	return "", false
 }
 
 // FormCreateLoginSession is a method you can override.
@@ -151,7 +151,7 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 				if formCookie := goutil.Clean.Str(c.Cookies("form_session")); formCookie == session.cookie {
 					c.ClearCookie("form_session")
 
-					if auth2, ok := FormVerifyLogin(goutil.Clean.Str(c.FormValue("username")), goutil.Clean.Str(c.FormValue("password"))); ok {
+					if uuid, auth2, ok := FormVerifyLogin(goutil.Clean.Str(c.FormValue("username")), goutil.Clean.Str(c.FormValue("password"))); ok {
 						if !auth2.Enabled || true /* temp: 2auth under development */ /* todo: verify if a 2auth method is handled by the admin and is not nil */ {
 							loginToken, exp := FormCreateLoginSession()
 
@@ -165,6 +165,9 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 								HTTPOnly: true,
 								SameSite: "Strict",
 							})
+
+							//todo: return uuid to user for next middleware method
+							_ = uuid
 
 							return c.Next()
 						}
@@ -182,8 +185,13 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 		}
 
 		loginToken := goutil.Clean.Str(c.Cookies("login_session"))
-		if loginToken != "" && FormVerifyLoginSession(loginToken) {
-			return c.Next()
+		if loginToken != "" {
+			if uuid, ok := FormVerifyLoginSession(loginToken); ok {
+				//todo: return uuid to user for next middleware method
+				_ = uuid
+
+				return c.Next()
+			}
 		}
 
 		// return error if not GET method
