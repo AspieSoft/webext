@@ -9,8 +9,8 @@ type StatusError struct {
 }
 
 // NewStatusError returns a new status error
-func NewStatusError(status int, msg string) StatusError {
-	return StatusError{status: status, msg: msg}
+func NewStatusError(status int, msg string) *StatusError {
+	return &StatusError{status: status, msg: msg}
 }
 
 // Status returns the status error code
@@ -39,7 +39,10 @@ var RenderPage func(c *fiber.Ctx, url string, status int, args map[string]any) e
 // It is used to handle http errors.
 // You can decide how you want to handle rendering http errors here.
 // You can also setup a templating engine of your choice with this method.
-var RenderError func(c *fiber.Ctx, url string, statusError StatusError, args map[string]any) error = func(c *fiber.Ctx, url string, statusError StatusError, args map[string]any) error {
-	c.SendStatus(statusError.status)
-	return c.SendString(statusError.msg)
+var RenderError func(c *fiber.Ctx, url string, statusError *StatusError, args map[string]any) error = func(c *fiber.Ctx, url string, statusError *StatusError, args map[string]any) error {
+	if statusError != nil {
+		c.SendStatus(statusError.status)
+		return c.SendString(statusError.msg)
+	}
+	return nil
 }

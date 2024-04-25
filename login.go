@@ -94,8 +94,8 @@ var FormVerifyLoginSession func(token string) (uuid string, verified bool) = fun
 // It is also highly recommended you store the expiration of the token in your database.
 //
 // If you cannot add the login session for any reason, return StatusError as the last argument
-// with a status code and an error message. For no error, just return an empty StatusError.
-var FormCreateLoginSession func(uuid string) (token string, exp time.Time, err StatusError) = func(uuid string) (string, time.Time, StatusError) {
+// with a status code and an error message. For no error, just return nil.
+var FormCreateLoginSession func(uuid string) (token string, exp time.Time, err *StatusError) = func(uuid string) (string, time.Time, *StatusError) {
 	// add user session to database
 	return string(crypt.RandBytes(256)), time.Now().Add(-24 * time.Hour), NewStatusError(500, "Create Session Method Needs Setup") // expire now
 }
@@ -159,7 +159,7 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 						if !auth2.Enabled || true /* temp: 2auth under development */ /* todo: verify if a 2auth method is handled by the admin and is not nil */ {
 							loginToken, exp, loginErr := FormCreateLoginSession(uuid)
 
-							if !goutil.IsZeroOfUnderlyingType(loginErr) && loginErr.status != 0 && loginErr.msg != "" {
+							if loginErr != nil {
 								hasLoginErr = true
 								if loginErr.status != 0 {
 									formStatus = loginErr.status
