@@ -11,6 +11,7 @@ require (
 )
 
 require (
+	github.com/AspieSoft/goutil/syncmap v0.0.0-20240421130826-c9ff7038cd70 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect

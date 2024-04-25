@@ -4,6 +4,8 @@ github.com/AspieSoft/goutil/crypt v0.0.0-20240421130826-c9ff7038cd70 h1:LFzqIJAw
 github.com/AspieSoft/goutil/crypt v0.0.0-20240421130826-c9ff7038cd70/go.mod h1:Pn5yHoJ8/THP/GM0cqTFLh5acw2Qibr1R9qa5FM7H0w=
 github.com/AspieSoft/goutil/fs/v3 v3.0.0-20240421130826-c9ff7038cd70 h1:oFNCkC0p/+bIgVoD+G7xwH63HekiiD926k5U0gXBPq0=
 github.com/AspieSoft/goutil/fs/v3 v3.0.0-20240421130826-c9ff7038cd70/go.mod h1:+gBsBUWQIRBFN8sZRq6T/jHb43cgGBeJPWZe8UkjD6k=
+github.com/AspieSoft/goutil/syncmap v0.0.0-20240421130826-c9ff7038cd70 h1:SDU2rRpg8hhwJOmjstYGJBy9Zzdvemm4c2Dj83/cqPs=
+github.com/AspieSoft/goutil/syncmap v0.0.0-20240421130826-c9ff7038cd70/go.mod h1:uv0UkHYV1rYyx1BsejA3399RQd5PLqPnx9yoUvdaIRU=
 github.com/AspieSoft/goutil/v7 v7.7.2 h1:Iuk6F9I/3wpNUQKwFqsRSjcXkJSaSQMpnXsblx/MLU4=
 github.com/AspieSoft/goutil/v7 v7.7.2/go.mod h1:JGAt912jBwFrTXiazla1FTVqSI3zDetUKR5HJb9ND5I=
 github.com/andybalholm/brotli v1.1.0 h1:eLKJA0d02Lf0mVpIDgYnqXcUn0GqVmEFny3VuID1U3M=
