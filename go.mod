@@ -6,12 +6,12 @@ require (
 	github.com/AspieSoft/go-regex-re2/v2 v2.2.0
 	github.com/AspieSoft/goutil/crypt v0.0.0-20240421130826-c9ff7038cd70
 	github.com/AspieSoft/goutil/fs/v3 v3.0.0-20240421130826-c9ff7038cd70
+	github.com/AspieSoft/goutil/syncmap v0.0.0-20240421130826-c9ff7038cd70
 	github.com/AspieSoft/goutil/v7 v7.7.2
 	github.com/gofiber/fiber/v2 v2.52.4
 )
 
 require (
-	github.com/AspieSoft/goutil/syncmap v0.0.0-20240421130826-c9ff7038cd70 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
