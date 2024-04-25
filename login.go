@@ -2,7 +2,6 @@ package webext
 
 import (
 	"crypto/sha512"
-	"errors"
 	"time"
 
 	"github.com/AspieSoft/go-regex-re2/v2"
@@ -93,9 +92,12 @@ var FormVerifyLoginSession func(token string) (uuid string, verified bool) = fun
 // The second argument should return when that token should expire.
 // The token will be sent to the user as a login_session cookie.
 // It is also highly recommended you store the expiration of the token in your database.
-var FormCreateLoginSession func() (token string, exp time.Time, errStatus int, err error) = func() (string, time.Time, int, error) {
+//
+// If you cannot add the login session for any reason, return StatusError as the last argument
+// with a status code and an error message. For no error, just return an empty StatusError.
+var FormCreateLoginSession func(uuid string) (token string, exp time.Time, err StatusError) = func(uuid string) (string, time.Time, StatusError) {
 	// add user session to database
-	return string(crypt.RandBytes(256)), time.Now().Add(-24 * time.Hour), 500, errors.New("Create Session Method Needs Setup") // expire now
+	return string(crypt.RandBytes(256)), time.Now().Add(-24 * time.Hour), StatusError{500, "Create Session Method Needs Setup"} // expire now
 }
 
 // FormRemoveLoginSession is a method you can override.
@@ -155,14 +157,14 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 
 					if uuid, auth2, ok := FormVerifyLogin(goutil.Clean.Str(c.FormValue("username")), goutil.Clean.Str(c.FormValue("password"))); ok {
 						if !auth2.Enabled || true /* temp: 2auth under development */ /* todo: verify if a 2auth method is handled by the admin and is not nil */ {
-							loginToken, exp, errStatus, loginErr := FormCreateLoginSession()
+							loginToken, exp, loginErr := FormCreateLoginSession(uuid)
 
-							if loginErr != nil {
+							if !goutil.IsZeroOfUnderlyingType(loginErr) && loginErr.status != 0 && loginErr.msg != "" {
 								hasLoginErr = true
-								if errStatus != 0 {
-									formStatus = errStatus
+								if loginErr.status != 0 {
+									formStatus = loginErr.status
 								}
-								formError = loginErr.Error()
+								formError = loginErr.msg
 							}else{
 								c.Cookie(&fiber.Cookie{
 									Name: "login_session",
