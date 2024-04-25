@@ -97,7 +97,7 @@ var FormVerifyLoginSession func(token string) (uuid string, verified bool) = fun
 // with a status code and an error message. For no error, just return an empty StatusError.
 var FormCreateLoginSession func(uuid string) (token string, exp time.Time, err StatusError) = func(uuid string) (string, time.Time, StatusError) {
 	// add user session to database
-	return string(crypt.RandBytes(256)), time.Now().Add(-24 * time.Hour), StatusError{500, "Create Session Method Needs Setup"} // expire now
+	return string(crypt.RandBytes(256)), time.Now().Add(-24 * time.Hour), NewStatusError(500, "Create Session Method Needs Setup") // expire now
 }
 
 // FormRemoveLoginSession is a method you can override.
@@ -159,12 +159,12 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 						if !auth2.Enabled || true /* temp: 2auth under development */ /* todo: verify if a 2auth method is handled by the admin and is not nil */ {
 							loginToken, exp, loginErr := FormCreateLoginSession(uuid)
 
-							if !goutil.IsZeroOfUnderlyingType(loginErr) && loginErr.Status != 0 && loginErr.Msg != "" {
+							if !goutil.IsZeroOfUnderlyingType(loginErr) && loginErr.status != 0 && loginErr.msg != "" {
 								hasLoginErr = true
-								if loginErr.Status != 0 {
-									formStatus = loginErr.Status
+								if loginErr.status != 0 {
+									formStatus = loginErr.status
 								}
-								formError = loginErr.Msg
+								formError = loginErr.msg
 							}else{
 								c.Cookie(&fiber.Cookie{
 									Name: "login_session",
@@ -222,8 +222,7 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 				formError = "Authentication Required!"
 			}
 
-			c.SendStatus(formStatus)
-			return c.SendString(formError)
+			return RenderError(c, "form:login", NewStatusError(formStatus, formError), map[string]any{})
 		}
 
 		formToken := string(crypt.RandBytes(64))

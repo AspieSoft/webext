@@ -66,8 +66,7 @@ func VerifyOrigin(origin []string, proxy []string, handleErr ...func(c *fiber.Ct
 			if len(handleErr) != 0 {
 				return handleErr[0](c, errors.New("Origin Not Allowed: "+hostname))
 			}
-			c.SendStatus(403)
-			return c.SendString("Origin Not Allowed: "+hostname)
+			return RenderError(c, "origin:denied", NewStatusError(403, "Origin Not Allowed: "+hostname), map[string]any{})
 		}
 
 		validProxy := false
@@ -82,8 +81,7 @@ func VerifyOrigin(origin []string, proxy []string, handleErr ...func(c *fiber.Ct
 			if len(handleErr) != 0 {
 				return handleErr[0](c, errors.New("IP Proxy Not Allowed: "+ip))
 			}
-			c.SendStatus(403)
-			return c.SendString("IP Proxy Not Allowed: "+ip)
+			return RenderError(c, "origin:denied", NewStatusError(403, "IP Proxy Not Allowed: "+ip), map[string]any{})
 		}
 
 		return c.Next()
