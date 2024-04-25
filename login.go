@@ -2,6 +2,7 @@ package webext
 
 import (
 	"crypto/sha512"
+	"errors"
 	"time"
 
 	"github.com/AspieSoft/go-regex-re2/v2"
@@ -92,9 +93,9 @@ var FormVerifyLoginSession func(token string) (uuid string, verified bool) = fun
 // The second argument should return when that token should expire.
 // The token will be sent to the user as a login_session cookie.
 // It is also highly recommended you store the expiration of the token in your database.
-var FormCreateLoginSession func() (token string, exp time.Time) = func() (string, time.Time) {
+var FormCreateLoginSession func() (token string, exp time.Time, errStatus int, err error) = func() (string, time.Time, int, error) {
 	// add user session to database
-	return string(crypt.RandBytes(256)), time.Now().Add(-24 * time.Hour) // expire now
+	return string(crypt.RandBytes(256)), time.Now().Add(-24 * time.Hour), 500, errors.New("Create Session Method Needs Setup") // expire now
 }
 
 // FormRemoveLoginSession is a method you can override.
@@ -143,7 +144,8 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 			c.ClearCookie("login_session")
 		}else if action == "login" {
 			//todo: add login method and limit attempts
-			// also verify session
+
+			var hasLoginErr bool
 
 			formToken := goutil.Clean.Str(c.FormValue("session"))
 			if session, ok := formSession.Get(formToken); ok && session.pcid == GetPCID(c) && time.Now().UnixMilli() < session.exp.UnixMilli() {
@@ -153,35 +155,49 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 
 					if uuid, auth2, ok := FormVerifyLogin(goutil.Clean.Str(c.FormValue("username")), goutil.Clean.Str(c.FormValue("password"))); ok {
 						if !auth2.Enabled || true /* temp: 2auth under development */ /* todo: verify if a 2auth method is handled by the admin and is not nil */ {
-							loginToken, exp := FormCreateLoginSession()
+							loginToken, exp, errStatus, loginErr := FormCreateLoginSession()
 
-							c.Cookie(&fiber.Cookie{
-								Name: "login_session",
-								Value: loginToken,
-								Expires: exp,
-								Path: "/",
-								Domain: hostname,
-								Secure: true,
-								HTTPOnly: true,
-								SameSite: "Strict",
-							})
-
-							//todo: return uuid to user for next middleware method
-							_ = uuid
-
-							return c.Next()
+							if loginErr != nil {
+								hasLoginErr = true
+								if errStatus != 0 {
+									formStatus = errStatus
+								}
+								formError = loginErr.Error()
+							}else{
+								c.Cookie(&fiber.Cookie{
+									Name: "login_session",
+									Value: loginToken,
+									Expires: exp,
+									Path: "/",
+									Domain: hostname,
+									Secure: true,
+									HTTPOnly: true,
+									SameSite: "Strict",
+								})
+	
+								//todo: return uuid to user for next middleware method
+								_ = uuid
+	
+								return c.Next()
+							}
 						}
 
 						//todo: handle 2auth form
 					}
 
-					formStatus = 401
-					formError = "Incorrect Username Or Password!"
+					if !hasLoginErr {
+						hasLoginErr = true
+						formStatus = 401
+						formError = "Incorrect Username Or Password!"
+					}
 				}
 			}
 
-			formStatus = 408
-			formError = "Session Invalid Or Expired!"
+			if !hasLoginErr {
+				hasLoginErr = true
+				formStatus = 408
+				formError = "Session Invalid Or Expired!"
+			}
 		}
 
 		loginToken := goutil.Clean.Str(c.Cookies("login_session"))
