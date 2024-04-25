@@ -159,12 +159,12 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 						if !auth2.Enabled || true /* temp: 2auth under development */ /* todo: verify if a 2auth method is handled by the admin and is not nil */ {
 							loginToken, exp, loginErr := FormCreateLoginSession(uuid)
 
-							if !goutil.IsZeroOfUnderlyingType(loginErr) && loginErr.status != 0 && loginErr.msg != "" {
+							if !goutil.IsZeroOfUnderlyingType(loginErr) && loginErr.Status != 0 && loginErr.Msg != "" {
 								hasLoginErr = true
-								if loginErr.status != 0 {
-									formStatus = loginErr.status
+								if loginErr.Status != 0 {
+									formStatus = loginErr.Status
 								}
-								formError = loginErr.msg
+								formError = loginErr.Msg
 							}else{
 								c.Cookie(&fiber.Cookie{
 									Name: "login_session",

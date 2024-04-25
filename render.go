@@ -3,8 +3,8 @@ package webext
 import "github.com/gofiber/fiber/v2"
 
 type StatusError struct {
-	status int
-	msg string
+	Status int
+	Msg string
 }
 
 // RenderPage is a method you can override.
