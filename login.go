@@ -130,6 +130,8 @@ var FormRemoveLoginSession func(token string) = func(token string) {
 //
 // Notice: This method is still in development and is experimental.
 // Use at your own risk.
+//
+// If user is successfully logged in, their uuid will be returned in c.Locals("uuid")
 func VerifyLogin() func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		hostname := string(regex.Comp(`:[0-9]+$`).RepStrLit([]byte(goutil.Clean.Str(c.Hostname())), []byte{}))
@@ -176,10 +178,8 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 									HTTPOnly: true,
 									SameSite: "Strict",
 								})
-	
-								//todo: return uuid to user for next middleware method
-								_ = uuid
-	
+
+								c.Locals("uuid", uuid)
 								return c.Next()
 							}
 						}
@@ -205,9 +205,7 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 		loginToken := goutil.Clean.Str(c.Cookies("login_session"))
 		if loginToken != "" {
 			if uuid, ok := FormVerifyLoginSession(loginToken); ok {
-				//todo: return uuid to user for next middleware method
-				_ = uuid
-
+				c.Locals("uuid", uuid)
 				return c.Next()
 			}
 		}
@@ -250,5 +248,23 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 			"session": formToken,
 			"error": formError,
 		})
+	}
+}
+
+// GetLoginSession will populate c.Locals("uuid") with a user uuid
+// if a login session is verified.
+//
+// Note: Unlike the VerifyLogin middleware, this middleware will Not
+// prevent c.Next() if the user is not logged in.
+func GetLoginSession() func(c *fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		loginToken := goutil.Clean.Str(c.Cookies("login_session"))
+		if loginToken != "" {
+			if uuid, ok := FormVerifyLoginSession(loginToken); ok {
+				c.Locals("uuid", uuid)
+			}
+		}
+
+		return c.Next()
 	}
 }
