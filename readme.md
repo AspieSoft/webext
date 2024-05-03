@@ -1,7 +1,5 @@
 # WebExt
 
-[![donation link](https://img.shields.io/badge/buy%20me%20a%20coffee-paypal-blue)](https://paypal.me/shaynejrtaylor?country.x=US&locale.x=en_US)
-
 A collection of website middleware to extend basic tasks for gofiber.
 
 Note: this module assumes you are using [gofiber/v2](https://github.com/gofiber/fiber)
