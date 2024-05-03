@@ -23,6 +23,8 @@ func (statusError *StatusError) Msg() string {
 	return statusError.msg
 }
 
+//todo: replace the Render methods with gofiber c.Render methods
+
 // RenderPage is a method you can override.
 //
 // It is used to handle page rendering.

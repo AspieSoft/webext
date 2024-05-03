@@ -49,70 +49,72 @@ var GetPCID func(c *fiber.Ctx) string = func(c *fiber.Ctx) string {
 	return string(id[:])
 }
 
-// FormVerifyLogin is a method you can override.
-// It is necessary to create this function if you intend to use the VerifyLogin middleware.
-//
-// This method should check your database and verify if a username and password is valid.
-//
-// @return
-//
-// @auth2: Returns a FormAuth struct which is used to determine what 2 step authentication
-// methods the user can accept. It should also include `Enabled: true|false` to specify if
-// a user has 2auth enabled or disabled.
-//
-// @verified: Should return true if the username and password are correct and valid. Return
-// false to reject the login and return an `Invalid Username or Password` error.
-//
-// Notice: The 2auth method is still in development, and is not currently available.
-// It is recommended for the first argument, you should simply pass `FormmAuth{Enabled: false}`.
-var FormVerifyLogin func(username string, password string) (uuid string, auth2 FormAuth, verified bool) = func (username string, password string) (string, FormAuth, bool) {
-	// verify user in database
-	return "", FormAuth{Enabled: false}, false
-}
+func init(){
+	// VerifyUserPass is a method you can override.
+	// It is necessary to create this function if you intend to use the VerifyLogin middleware.
+	//
+	// This method should check your database and verify if a username and password is valid.
+	//
+	// @return
+	//
+	// @auth2: Returns a FormAuth struct which is used to determine what 2 step authentication
+	// methods the user can accept. It should also include `Enabled: true|false` to specify if
+	// a user has 2auth enabled or disabled.
+	//
+	// @verified: Should return true if the username and password are correct and valid. Return
+	// false to reject the login and return an `Invalid Username or Password` error.
+	//
+	// Notice: The 2auth method is still in development, and is not currently available.
+	// It is recommended for the first argument, you should simply pass `FormmAuth{Enabled: false}`.
+	Hooks.LoginForm.VerifyUserPass = func(username, password string) (uuid string, auth2 FormAuth, verified bool) {
+		// verify user in database
+		return "", FormAuth{Enabled: false}, false
+	}
 
-// FormVerifyLoginSession is a method you can override.
-// It is necessary to create this function if you intend to use the VerifyLogin middleware.
-//
-// This method should check your database for a session token verifying if the users
-// login_session cookie is valid and not expired.
-var FormVerifyLoginSession func(token string) (uuid string, verified bool) = func (token string) (string, bool) {
-	// verify user session in database
-	return "", false
-}
+	// VerifySession is a method you can override.
+	// It is necessary to create this function if you intend to use the VerifyLogin middleware.
+	//
+	// This method should check your database for a session token verifying if the users
+	// login_session cookie is valid and not expired.
+	Hooks.LoginForm.VerifySession = func(token string) (uuid string, verified bool) {
+		// verify user session in database
+		return "", false
+	}
 
-// FormCreateLoginSession is a method you can override.
-// It is necessary to create this function if you intend to use the VerifyLogin middleware.
-//
-// This method runs after the login has been successfully verified.
-//
-// You need to generate a unique random token and
-//  - store it in your database
-//  - return the same token as the first argument of this function
-//
-// The second argument should return when that token should expire.
-// The token will be sent to the user as a login_session cookie.
-// It is also highly recommended you store the expiration of the token in your database.
-//
-// If you cannot add the login session for any reason, return StatusError as the last argument
-// with a status code and an error message. For no error, just return nil.
-var FormCreateLoginSession func(uuid string) (token string, exp time.Time, err *StatusError) = func(uuid string) (string, time.Time, *StatusError) {
-	// add user session to database
-	return string(crypt.RandBytes(256)), time.Now().Add(-24 * time.Hour), NewStatusError(500, "Create Session Method Needs Setup") // expire now
-}
+	// CreateSession is a method you can override.
+	// It is necessary to create this function if you intend to use the VerifyLogin middleware.
+	//
+	// This method runs after the login has been successfully verified.
+	//
+	// You need to generate a unique random token and
+	//  - store it in your database
+	//  - return the same token as the first argument of this function
+	//
+	// The second argument should return when that token should expire.
+	// The token will be sent to the user as a login_session cookie.
+	// It is also highly recommended you store the expiration of the token in your database.
+	//
+	// If you cannot add the login session for any reason, return StatusError as the last argument
+	// with a status code and an error message. For no error, just return nil.
+	Hooks.LoginForm.CreateSession = func(uuid string) (token string, exp time.Time, err *StatusError) {
+		// add user session to database
+		return string(crypt.RandBytes(256)), time.Now().Add(-24 * time.Hour), NewStatusError(500, "Create Session Method Needs Setup") // expire now
+	}
 
-// FormRemoveLoginSession is a method you can override.
-// It is necessary to create this function if you intend to use the VerifyLogin middleware.
-//
-// This method is called when a user logs out.
-//
-// You need to remove the login_session token from your database.
-// The cookie will automatically be cleared.
-//
-// It is highly recommended you do Not keep the now invalid token in your database
-// for security. If the user logged out, we do not want to keep any unused tokens
-// for a hacker to try and abuse.
-var FormRemoveLoginSession func(token string) = func(token string) {
-	// remove user session from database
+	// RemoveSession is a method you can override.
+	// It is necessary to create this function if you intend to use the VerifyLogin middleware.
+	//
+	// This method is called when a user logs out.
+	//
+	// You need to remove the login_session token from your database.
+	// The cookie will automatically be cleared.
+	//
+	// It is highly recommended you do Not keep the now invalid token in your database
+	// for security. If the user logged out, we do not want to keep any unused tokens
+	// for a hacker to try and abuse.
+	Hooks.LoginForm.RemoveSession = func(token string) {
+		// remove user session from database
+	}
 }
 
 
@@ -144,7 +146,7 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 
 		if action == "logout" {
 			formToken := goutil.Clean.Str(c.FormValue("session"))
-			FormRemoveLoginSession(formToken)
+			Hooks.LoginForm.RemoveSession(formToken)
 			c.ClearCookie("login_session")
 		}else if action == "login" {
 			//todo: add login method and limit attempts
@@ -157,9 +159,9 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 				if formCookie := goutil.Clean.Str(c.Cookies("form_session")); formCookie == session.cookie {
 					c.ClearCookie("form_session")
 
-					if uuid, auth2, ok := FormVerifyLogin(goutil.Clean.Str(c.FormValue("username")), goutil.Clean.Str(c.FormValue("password"))); ok {
+					if uuid, auth2, ok := Hooks.LoginForm.VerifyUserPass(goutil.Clean.Str(c.FormValue("username")), goutil.Clean.Str(c.FormValue("password"))); ok {
 						if !auth2.Enabled || true /* temp: 2auth under development */ /* todo: verify if a 2auth method is handled by the admin and is not nil */ {
-							loginToken, exp, loginErr := FormCreateLoginSession(uuid)
+							loginToken, exp, loginErr := Hooks.LoginForm.CreateSession(uuid)
 
 							if loginErr != nil {
 								hasLoginErr = true
@@ -204,7 +206,7 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 
 		loginToken := goutil.Clean.Str(c.Cookies("login_session"))
 		if loginToken != "" {
-			if uuid, ok := FormVerifyLoginSession(loginToken); ok {
+			if uuid, ok := Hooks.LoginForm.VerifySession(loginToken); ok {
 				c.Locals("uuid", uuid)
 				return c.Next()
 			}
@@ -260,7 +262,7 @@ func GetLoginSession() func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		loginToken := goutil.Clean.Str(c.Cookies("login_session"))
 		if loginToken != "" {
-			if uuid, ok := FormVerifyLoginSession(loginToken); ok {
+			if uuid, ok := Hooks.LoginForm.VerifySession(loginToken); ok {
 				c.Locals("uuid", uuid)
 			}
 		}
