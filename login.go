@@ -63,6 +63,19 @@ func init(){
 		}
 	}
 
+	if Hooks.LoginForm.OnAttempt == nil {
+		Hooks.LoginForm.OnAttempt = func(c *fiber.Ctx, method string) (allow bool) {
+			// check database for number of failed attempts
+			return true
+		}
+	}
+
+	if Hooks.LoginForm.OnFailedAttempt == nil {
+		Hooks.LoginForm.OnFailedAttempt = func(c *fiber.Ctx, method string) {
+			// add failed attempt count to database with expiration
+		}
+	}
+
 	Hooks.LoginForm.OnLogin = []func(uuid string) (allowLogin error){}
 }
 
