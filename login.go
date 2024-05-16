@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/AspieSoft/go-regex-re2/v2"
-	"github.com/AspieSoft/goutil/crypt"
+	"github.com/AspieSoft/goutil/crypt/v2"
 	"github.com/AspieSoft/goutil/syncmap"
 	"github.com/AspieSoft/goutil/v7"
 	"github.com/gofiber/fiber/v2"
@@ -46,7 +46,7 @@ func init(){
 	if Hooks.LoginForm.CreateSession == nil {
 		Hooks.LoginForm.CreateSession = func(uuid string) (token string, exp time.Time, err error) {
 			// add user session to database
-			return string(crypt.RandBytes(256)), time.Now().Add(-24 * time.Hour), errors.New("500:Create Session Method Needs Setup!") // expire now
+			return crypt.GenUUID(64), time.Now().Add(-24 * time.Hour), errors.New("500:Create Session Method Needs Setup!") // expire now
 		}
 	}
 

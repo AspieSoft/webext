@@ -5,9 +5,10 @@ go 1.22.0
 require (
 	github.com/AspieSoft/go-regex-re2/v2 v2.2.0
 	github.com/AspieSoft/goutil/crypt v0.0.0-20240421130826-c9ff7038cd70
+	github.com/AspieSoft/goutil/crypt/v2 v2.0.0-20240508040632-49b3bd4cec6a
 	github.com/AspieSoft/goutil/fs/v3 v3.0.0-20240421130826-c9ff7038cd70
 	github.com/AspieSoft/goutil/syncmap v0.0.0-20240421130826-c9ff7038cd70
-	github.com/AspieSoft/goutil/v7 v7.7.2
+	github.com/AspieSoft/goutil/v7 v7.8.0
 	github.com/gofiber/fiber/v2 v2.52.4
 )
 
