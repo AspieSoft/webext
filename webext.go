@@ -23,7 +23,7 @@ import (
 )
 
 // PWD is initialized to the parent working directory of your app
-var PWD string
+var PWD string = "."
 
 // IsRoot returns true if the EUID is 0
 //
@@ -67,7 +67,6 @@ func VerifyOrigin(origin []string, proxy []string, handleErr ...func(c *fiber.Ct
 				return handleErr[0](c, errors.New("Origin Not Allowed: "+hostname))
 			}
 
-			//todo: add optional c.Render
 			c.SendStatus(403)
 			return c.SendString("Origin Not Allowed: "+hostname)
 		}
@@ -85,7 +84,6 @@ func VerifyOrigin(origin []string, proxy []string, handleErr ...func(c *fiber.Ct
 				return handleErr[0](c, errors.New("IP Proxy Not Allowed: "+ip))
 			}
 
-			//todo: add optional c.Render
 			c.SendStatus(403)
 			return c.SendString("IP Proxy Not Allowed: "+ip)
 		}

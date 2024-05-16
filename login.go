@@ -76,7 +76,9 @@ func init(){
 		}
 	}
 
-	Hooks.LoginForm.OnLogin = []func(uuid string) (allowLogin error){}
+	if Hooks.LoginForm.OnLogin == nil {
+		Hooks.LoginForm.OnLogin = []func(uuid string) (allowLogin error){}
+	}
 }
 
 
@@ -144,7 +146,6 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 								SameSite: "Strict",
 							})
 
-							//todo: add optional c.Render
 							return Hooks.LoginForm.Render2Auth(c, uuid, formToken)
 						}
 
@@ -279,7 +280,6 @@ func VerifyLogin() func(c *fiber.Ctx) error {
 			SameSite: "Strict",
 		})
 
-		//todo: add optional c.Render
 		return Hooks.LoginForm.Render(c, formToken)
 	}
 }
