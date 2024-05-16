@@ -46,7 +46,7 @@ func init(){
 	if Hooks.LoginForm.CreateSession == nil {
 		Hooks.LoginForm.CreateSession = func(uuid string) (token string, exp time.Time, err error) {
 			// add user session to database
-			return crypt.GenUUID(64), time.Now().Add(-24 * time.Hour), errors.New("500:Create Session Method Needs Setup!") // expire now
+			return string(crypt.RandBytes(256)), time.Now().Add(-24 * time.Hour), errors.New("500:Create Session Method Needs Setup!") // expire now
 		}
 	}
 
